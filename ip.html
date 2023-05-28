@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP地址查询</title>
+    <script src="./static/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link href="./static/libs/twitter-bootstrap/5.1.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="./static/libs/twitter-bootstrap/5.1.0/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <div class="container my-4">
+        <h1 class="mb-4 text-center">IP地址查询</h1>
+        <form>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="ip_address" placeholder="输入要查询的IP地址">
+                <button type="submit" class="btn btn-primary">查询</button>
+            </div>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        $('form').submit(function(event) {
+            event.preventDefault();
+            var form = $(this);
+            var ip = $('#ip_address').val().trim();
+            if (ip == '') {
+                alert('请输入要查询的IP地址！');
+                return;
+            }
+            if (form.hasClass('disabled')) {
+                return;
+            }
+            form.addClass('disabled');
+            var button = form.find('button[type=submit]');
+            button.html('查询中...');
+            $.ajax({
+                url: 'https://decode.xiaojieapi.com/api/ip.php',//更多免费接口：https://support.qq.com/products/322975/
+                method: 'GET',
+                data: { ip: ip },
+                dataType: 'json',
+                success: function(data) {
+                    button.html('查询');
+                    form.removeClass('disabled');
+                    if (data.code == 200) {
+                        var resultHtml = '<p><b>查询结果：</b></p>';
+                        resultHtml += '<div class="table-responsive">';
+                        resultHtml += '<table class="table table-bordered">';
+                        resultHtml += '<tr><th>IP地址：</th><td>' + data.ip + '</td></tr>';
+                        resultHtml += '<tr><th>省份：</th><td>' + data.info.province + '</td></tr>';
+                        resultHtml += '<tr><th>城市：</th><td>' + data.info.city + '</td></tr>';
+                        resultHtml += '<tr><th>区/县：</th><td>' + data.info.district + '</td></tr>';
+                        resultHtml += '<tr><th>运营商：</th><td>' + data.info.area + '</td></tr>';
+                        resultHtml += '<tr><th>数据库更新时间：</th><td>' + data.last_updated + '</td></tr>';
+                        resultHtml += '</table></div>';
+                        $('#result').html(resultHtml);
+                    } else if (data.code == 201) {
+                        alert('IP地址为空！');
+                    } else if (data.code == 202) {
+                        alert('不支持查询IPv6！');
+                    } else {
+                        alert('请输入合法的ip地址！');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    button.html('查询');
+                    form.removeClass('disabled');
+                    alert('查询异常：' + error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

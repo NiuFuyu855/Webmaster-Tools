@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>支付宝到账语音</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- 引入必要的样式和JS文件 -->
+  <link rel="stylesheet" href="./static/libs/twitter-bootstrap/5.1.0/css/bootstrap.min.css">
+  <script src="./static/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="./static/libs/twitter-bootstrap/5.1.0/js/bootstrap.bundle.min.js"></script>
+
+  <style>
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 30px;
+    }
+    .input-group {
+      margin-bottom: 30px;
+    }
+    audio {
+      display: block;
+      margin: 0 auto;
+      margin-top: 30px;
+      width: 100%;
+      max-width: 500px;
+    }
+    .download-btn {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container my-4">
+    <h1>支付宝到账语音</h1>
+
+    <!-- 表单 -->
+    <form id="speech-form">
+      <div class="input-group mb-3">
+        <span class="input-group-text">金额大小：</span>
+        <input type="text" name="money" class="form-control" placeholder="请输入金额大小" required>
+      </div>
+
+      <button id="submit-button" type="submit" class="btn btn-primary mb-3">生成语音</button>
+    </form>
+
+    <!-- 音频播放器 -->
+    <audio id="speech-audio" controls preload="none" style="display: none;"></audio>
+    
+    <!-- 下载按钮 -->
+    <a id="download-btn" class="btn btn-success download-btn" href="#" download="" style="display: none;">下载语音</a>
+  </div>
+
+  <script>
+    $(function() {
+      // 获取提交按钮元素
+      var submitBtn = $('#submit-button');
+
+      // 监听表单提交事件，调用API生成语音并播放
+      $('#speech-form').submit(function(e) {
+        e.preventDefault();
+
+        // 禁用提交按钮，避免重复提交
+        submitBtn.prop('disabled', true);
+
+        var money = $('input[name=money]').val();
+        if (money === '') {
+          alert('请输入金额大小！');
+          return;
+        }
+       // 判断输入的金额是否为纯数字，并且在 0 和 999999999999 之间
+        if (!/^\d+$/.test(money) || money < 0 || money.length > 12) {
+           alert('请输入正确的金额！');
+           return;
+         }
+    
+        // 隐藏下载按钮，防止误传、混淆等问题
+        $('#download-btn').hide();
+        
+        var apiUrl = 'https://decode.xiaojieapi.com/api/alipay_arrival.php?money=' + money;//更多免费接口：https://support.qq.com/products/322975/
+
+        // 创建一个新的 Audio 元素
+        var audio = new Audio(apiUrl);
+
+        // 添加一个监听器，当音频数据准备好时开始播放
+        audio.addEventListener('canplay', function() {
+          audio.style.display = 'block';
+          $('#download-btn').attr('href', apiUrl).attr('download', money + '.mp3').show();
+          audio.play();
+
+          // 显示下载按钮
+          $('#download-btn').show();
+
+          // 启用提交按钮，允许重新提交
+          submitBtn.prop('disabled', false);
+        });
+
+        // 给音频播放器赋源数据（即从接口获取的音频二进制流）
+        audio.src = apiUrl;
+
+        // 更新界面显示
+        $('#speech-audio').replaceWith(audio);
+      });
+    });
+  </script>
+</body>
+</html>
